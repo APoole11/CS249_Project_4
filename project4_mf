@@ -1,0 +1,17 @@
+CC = gcc
+DEBUG = -g
+CFLAGS = -Wall -c $(DEBUG)
+LFLAGS = -Wall $(DEBUG)
+
+Project_4 : ContainerBoxOps.o ContainerBoxMain.o
+	$(CC) $(LFLAGS) ContainerBoxOps.o ContainerBoxMain.o -o Project_4
+
+ContainerBoxMain.o : ContainerBoxOps.h ContainerBoxMain.c 
+	$(CC) $(CFLAGS) ContainerBoxMain.c
+
+ContainerBoxOps.o : ContainerBoxOps.h ContainerBoxOps.c
+	$(CC) $(CFLAGS) ContainerBoxOps.c
+
+clean:
+	\rm *.o Project_4
+
