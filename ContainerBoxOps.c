@@ -105,7 +105,7 @@ void displayField( ContainerBoxData *containerBox, bool displayFlag )
         printf( "\n" );
        }
 
-    // Sleep( 1000 );  // pauses program for number of milliseconds
+    //sleep( 1 );  // pauses program for number of seconds
    }
 
 void fillBoxLocation( ContainerBoxData *containerBox, PointData boxLocation,
@@ -133,42 +133,92 @@ void fillBoxLocation( ContainerBoxData *containerBox, PointData boxLocation,
 bool fillContainerBox( ContainerBoxData *containerBox, bool displayFlag )
    {
     // initialize variables
-       // next open location
-    PointData nextLocation;
-
+    PointData currentLocation;
     InsideBoxData unusedBox;
-
-       // various flags
     bool locationFlag;
     bool fitFlag;
+    bool boxFillFlag = false;
+    int unusedBoxIndex = 0;
+    int startAtIndex = 0;
+    int unusedBoxIndexIterator;
+    char idLetterChar;
 
-    int unusedBoxIndex;
+    locationFlag = findNextOpenLocation( containerBox, &currentLocation );
+    unusedBoxIndex = findNextUnusedBoxIndex( containerBox, startAtIndex );
+    unusedBoxIndexIterator = unusedBoxIndex;
 
-
-    // find the next open test location
-    locationFlag = findNextOpenLocation( containerBox, &nextLocation );
-
-    // get the next box index
-    unusedBoxIndex = findNextUnusedBoxIndex( containerBox, nextLocation );
-
-    // get next box to fit check
-    unusedBox = containerBox->insideBoxList[unusedBoxIndex];
-
-    // if location flag is true, test current box at current location
-    fitFlag = checkForFitInField( containerBox, nextLocation, unusedBox);
-
-    // if flag from checkForFitInField is true
-    if ( fitFlag == true )
+    if ( unusedBoxIndex == NO_BOXES_AVAILABLE )
        {
-        //  place the box in the valid location
-           // function: fillBoxLocation
-        fillBoxLocation( containerBox, nextLocation, unusedBox, FILL_BOX );
-        // set used flag to true
+        return true;
        }
 
+    while ( boxFillFlag == false && unusedBoxIndexIterator < containerBox->numBoxes)
+       {
+        // get the unused box
+        unusedBox = containerBox->insideBoxList[unusedBoxIndexIterator];
 
+        // fit check
+        fitFlag = checkForFitInField( containerBox, currentLocation, unusedBox);
 
-    return false;  // temporary stub return
+        if ( containerBox->insideBoxList[unusedBoxIndexIterator].usedState == true )
+           {
+            fitFlag = false;
+           }
+
+        // if flag from checkForFitInField is true
+        if ( fitFlag == true && locationFlag == true)
+           {
+            //  place the box in the valid location
+            fillBoxLocation( containerBox, currentLocation, unusedBox, FILL_BOX );
+            boxFillFlag = true;
+
+            displayField( containerBox, displayFlag );
+
+            // set used flag to true
+            containerBox->insideBoxList[unusedBoxIndexIterator].usedState = true;
+
+            fillContainerBox( containerBox, displayFlag );
+           }
+
+        else if ( locationFlag == true )
+           {
+            // get idLetter
+            idLetterChar = unusedBox.idLetter;
+
+            // current box id failed, rotating
+            printf("\nBox %c first attempt failed, rotating\n", idLetterChar);
+
+            // rotate the box before testing again
+            rotate(&unusedBox);
+
+            // fit check
+            fitFlag = checkForFitInField( containerBox, currentLocation, unusedBox);
+
+            if ( fitFlag == true && locationFlag == true)
+               {
+                //  place the box in the valid location
+                fillBoxLocation( containerBox, currentLocation, unusedBox, FILL_BOX );
+                boxFillFlag = true;
+
+                displayField( containerBox, displayFlag );
+
+                // set used flag to true
+                containerBox->insideBoxList[unusedBoxIndexIterator].usedState = true;
+
+                return fillContainerBox( containerBox, displayFlag );
+               }
+
+            printf("\nBox %c second attempt failed, trying another box\n", idLetterChar);
+           }
+
+        unusedBoxIndexIterator++;
+       }
+
+    printf("\nFailed at this location, backtracking\n");
+
+    containerBox->insideBoxList[unusedBoxIndex - 1].usedState = true;
+    //fillBoxLocation( containerBox, currentLocation, unusedBox, CLEAR_BOX );
+    return fillContainerBox( containerBox, displayFlag );
    }
 
 bool findNextOpenLocation( const ContainerBoxData *containerBox,

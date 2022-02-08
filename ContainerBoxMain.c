@@ -43,7 +43,7 @@ int main( int argc, char *argv[] )
     ContainerBoxData containerBox;
     int index;
     char nextLetter = 'A';
-    bool displayFlag = false;
+    bool displayFlag = false; // originally false
 
     if( argc > 1 && strcmp( argv[ FIRST_ARGUMENT ], "-verbose" ) == 0 )
        {
@@ -59,7 +59,7 @@ int main( int argc, char *argv[] )
 
     if( displayFlag )
        {
-        printf( "Loading Boxes:\n" );
+        printf( "\nLoading Boxes:\n" );
        }
 
     // set up inside boxes
