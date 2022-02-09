@@ -132,94 +132,115 @@ void fillBoxLocation( ContainerBoxData *containerBox, PointData boxLocation,
 
 bool fillContainerBox( ContainerBoxData *containerBox, bool displayFlag )
    {
+    // initialize constant
+    int ROTATION_COUNTER = 2;
+
     // initialize variables
-    PointData currentLocation;
-    InsideBoxData unusedBox;
-    bool locationFlag;
-    bool fitFlag;
-    bool boxFillFlag = false;
-    int unusedBoxIndex = 0;
+    int currentBoxIndex;
     int startAtIndex = 0;
-    int unusedBoxIndexIterator;
+    int index;
+    InsideBoxData currentBox;
+    PointData currentLocation;
+    bool locationFlag;
     char idLetterChar;
+    bool nextLevelDownFlag;
 
+    // determine current location
     locationFlag = findNextOpenLocation( containerBox, &currentLocation );
-    unusedBoxIndex = findNextUnusedBoxIndex( containerBox, startAtIndex );
-    unusedBoxIndexIterator = unusedBoxIndex;
 
-    if ( unusedBoxIndex == NO_BOXES_AVAILABLE )
+    // get box index
+    currentBoxIndex = findNextUnusedBoxIndex( containerBox, startAtIndex );
+
+    if ( !locationFlag && currentBoxIndex == NO_BOXES_AVAILABLE )
        {
         return true;
        }
 
-    while ( boxFillFlag == false && unusedBoxIndexIterator < containerBox->numBoxes)
+    // start a loop for when no boxes found
+    while ( currentBoxIndex != NO_BOXES_AVAILABLE )
        {
-        // get the unused box
-        unusedBox = containerBox->insideBoxList[unusedBoxIndexIterator];
+        // get current box
+        currentBox = containerBox->insideBoxList[ currentBoxIndex ];
 
-        // fit check
-        fitFlag = checkForFitInField( containerBox, currentLocation, unusedBox);
-
-        if ( containerBox->insideBoxList[unusedBoxIndexIterator].usedState == true )
+        // loop twice for rotation if needed
+        for ( index = 0; index < ROTATION_COUNTER; index++ )
            {
-            fitFlag = false;
-           }
+            // get current box?????????
+            currentBox = containerBox->insideBoxList[ currentBoxIndex ];
 
-        // if flag from checkForFitInField is true
-        if ( fitFlag == true && locationFlag == true)
-           {
-            //  place the box in the valid location
-            fillBoxLocation( containerBox, currentLocation, unusedBox, FILL_BOX );
-            boxFillFlag = true;
-
-            displayField( containerBox, displayFlag );
-
-            // set used flag to true
-            containerBox->insideBoxList[unusedBoxIndexIterator].usedState = true;
-
-            fillContainerBox( containerBox, displayFlag );
-           }
-
-        else if ( locationFlag == true )
-           {
-            // get idLetter
-            idLetterChar = unusedBox.idLetter;
-
-            // current box id failed, rotating
-            printf("\nBox %c first attempt failed, rotating\n", idLetterChar);
-
-            // rotate the box before testing again
-            rotate(&unusedBox);
-
-            // fit check
-            fitFlag = checkForFitInField( containerBox, currentLocation, unusedBox);
-
-            if ( fitFlag == true && locationFlag == true)
+            // if the current box does fit
+            if ( checkForFitInField( containerBox, currentLocation, currentBox) )
                {
-                //  place the box in the valid location
-                fillBoxLocation( containerBox, currentLocation, unusedBox, FILL_BOX );
-                boxFillFlag = true;
+                // paint the box
+                fillBoxLocation( containerBox, currentLocation, containerBox->insideBoxList[ currentBoxIndex ], FILL_BOX);
 
+
+                startAtIndex++;
+
+                // set the box as used
+                containerBox->insideBoxList[ currentBoxIndex ].usedState = true;
+
+                // display the field with the new box in place
                 displayField( containerBox, displayFlag );
 
-                // set used flag to true
-                containerBox->insideBoxList[unusedBoxIndexIterator].usedState = true;
+                // determine the success of the next level down
+                nextLevelDownFlag = fillContainerBox( containerBox, displayFlag );
 
-                return fillContainerBox( containerBox, displayFlag );
+                // if the next level down is successful, return true on this level
+                if ( nextLevelDownFlag )
+                   {
+                    // return true
+                    return true;
+                   }
+
+                // if next level down returns false
+                // unset the current box used
+                containerBox->insideBoxList[ currentBoxIndex ].usedState = false;
+
+                // clear the current box back to the default character
+                fillBoxLocation( containerBox, currentLocation, containerBox->insideBoxList[ currentBoxIndex ], CLEAR_BOX);
+
+                // display the field with the box removed
+                displayField( containerBox, displayFlag );
+
                }
 
-            printf("\nBox %c second attempt failed, trying another box\n", idLetterChar);
+            else if ( index == 0 )
+               {
+                idLetterChar = currentBox.idLetter;
+
+                printf("\nBox %c first attempt failed, rotating\n", idLetterChar);
+
+                // rotate box ( not in the if statement for box fit )
+                rotate( &containerBox->insideBoxList[ currentBoxIndex ] );
+               }
+
+            else
+               {
+                idLetterChar = currentBox.idLetter;
+
+                printf("\nBox %c second attempt failed, trying another box\n", idLetterChar);
+                startAtIndex++;
+                //currentBoxIndex = findNextUnusedBoxIndex( containerBox, startAtIndex );
+               }
            }
 
-        unusedBoxIndexIterator++;
+        // increment start at index
+        startAtIndex++;
+
+        // get new box index
+        currentBoxIndex = findNextUnusedBoxIndex( containerBox, startAtIndex );
        }
 
-    printf("\nFailed at this location, backtracking\n");
+    if ( displayFlag )
+       {
+        // print the backtracking statement
+        printf("\nFailed at this location, backtracking\n");
+       }
 
-    containerBox->insideBoxList[unusedBoxIndex - 1].usedState = true;
-    //fillBoxLocation( containerBox, currentLocation, unusedBox, CLEAR_BOX );
-    return fillContainerBox( containerBox, displayFlag );
-   }
+    // return false when all boxes and orientations are exhausted at that position
+    return false;
+    }
 
 bool findNextOpenLocation( const ContainerBoxData *containerBox,
                                                         PointData *returnPoint )

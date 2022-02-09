@@ -26,6 +26,7 @@ int main( int argc, char *argv[] )
            containerBoxWidth  = 12,
            numBoxes           = 10;
 
+
        // Data Set 3 - long one
 /*       int heightList[] = { 4, 2, 2, 5, 7, 5, 5, 3, 4, 4 };
        int widthList[] =  { 5, 3, 4, 7, 6, 5, 3, 3, 3, 2 };
@@ -40,6 +41,7 @@ int main( int argc, char *argv[] )
            containerBoxWidth  = 12,
            numBoxes           = 10;
 */
+
     ContainerBoxData containerBox;
     int index;
     char nextLetter = 'A';
