@@ -174,7 +174,6 @@ bool fillContainerBox( ContainerBoxData *containerBox, bool displayFlag )
                 // paint the box
                 fillBoxLocation( containerBox, currentLocation, containerBox->insideBoxList[ currentBoxIndex ], FILL_BOX);
 
-
                 startAtIndex++;
 
                 // set the box as used
@@ -200,28 +199,30 @@ bool fillContainerBox( ContainerBoxData *containerBox, bool displayFlag )
                 // clear the current box back to the default character
                 fillBoxLocation( containerBox, currentLocation, containerBox->insideBoxList[ currentBoxIndex ], CLEAR_BOX);
 
+                startAtIndex--;
+
                 // display the field with the box removed
                 displayField( containerBox, displayFlag );
-
                }
 
             else if ( index == 0 )
                {
                 idLetterChar = currentBox.idLetter;
 
-                printf("\nBox %c first attempt failed, rotating\n", idLetterChar);
-
                 // rotate box ( not in the if statement for box fit )
                 rotate( &containerBox->insideBoxList[ currentBoxIndex ] );
+
+                if ( displayFlag )
+                   {
+                    printf("\nBox %c first attempt failed, rotating\n", idLetterChar);
+                   }
                }
 
-            else
+            else if ( index == 1 && displayFlag )
                {
                 idLetterChar = currentBox.idLetter;
 
                 printf("\nBox %c second attempt failed, trying another box\n", idLetterChar);
-                startAtIndex++;
-                //currentBoxIndex = findNextUnusedBoxIndex( containerBox, startAtIndex );
                }
            }
 
@@ -240,7 +241,7 @@ bool fillContainerBox( ContainerBoxData *containerBox, bool displayFlag )
 
     // return false when all boxes and orientations are exhausted at that position
     return false;
-    }
+   }
 
 bool findNextOpenLocation( const ContainerBoxData *containerBox,
                                                         PointData *returnPoint )
